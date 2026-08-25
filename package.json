@@ -1,0 +1,24 @@
+{
+  "name": "strihani-metru",
+  "version": "1.0.0",
+  "description": "Interaktivní aplikace pro odpočet do Dne D ve stylu tradičního stříhání metru",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "countdown",
+    "odpocet",
+    "strihani-metru",
+    "metr",
+    "tape-measure",
+    "web-audio"
+  ],
+  "author": "Pavel",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.4.2"
+  }
+}

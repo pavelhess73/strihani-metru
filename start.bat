@@ -1,0 +1,3 @@
+@echo off
+echo Oteviram aplikaci Strihani metru v prohlizeci...
+start "" "%~dp0index.html"

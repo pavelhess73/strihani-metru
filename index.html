@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stříhání metru - Interaktivní odpočítávadlo do Dne D</title>
+    <meta name="description" content="Krásné interaktivní odpočítávadlo ve stylu krejčovského a vojenského stříhání metru s nůžkami, zvukem, částicemi a milníky.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sound and Particle Overlay Canvas -->
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo-container">
+            <span class="logo-icon">✂️</span>
+            <div class="logo-title">Stříhání metru</div>
+        </div>
+
+        <div class="header-actions">
+            <select id="theme-select" class="btn" title="Změnit vzhled metru">
+                <option value="tailor">🟡 Krejčovský žlutý</option>
+                <option value="army">🪖 Vojenský Army</option>
+                <option value="neon">🔮 Cyberpunk Neon</option>
+                <option value="white-cloth">⚪ Bílý plátěný</option>
+            </select>
+            <button id="btn-sound-toggle" class="btn" title="Zapnout / Vypnout zvuk">🔊 Zvuk: Zapnut</button>
+            <button id="btn-settings" class="btn btn-primary" title="Nastavení odpočtu">⚙️ Nastavit metr</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main>
+        <!-- Hero Overview Card -->
+        <section class="hero-card">
+            <div class="event-details">
+                <h1 id="event-title">Odpočet do Dne D 🎉</h1>
+                <div class="event-target">
+                    <span id="event-target-date">Cílové datum: Načítám...</span>
+                    <span id="event-badge" class="badge-tag">Délka: 100 cm (100 → 1)</span>
+                </div>
+
+                <div class="event-progress-wrap">
+                    <div class="progress-header">
+                        <span>Průběh odpočtu</span>
+                        <span id="progress-text">0 z 100 cm odstřiženo (0%)</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-cut">0 cm</div>
+                    <div class="stat-label">Ustřiženo</div>
+                </div>
+                <div class="stat-item highlight">
+                    <div class="stat-num" id="stat-remaining">100 cm</div>
+                    <div class="stat-label">Zbývá do cíle</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-percent">0%</div>
+                    <div class="stat-label">Hotovo</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Tape Stage -->
+        <section class="tape-stage">
+            <div class="tape-stage-header">
+                <div class="stage-title-wrap">
+                    <h2>📏 Páska metru <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.7;">(1 cm = 1 den)</span></h2>
+                    <p class="stage-subtitle">Kliknutím na ✂️ u příslušného centimetru ustřihnete den. Tažením myší lze pásku posouvat.</p>
+                </div>
+                <div class="stage-controls">
+                    <button id="btn-add-milestone" class="btn" title="Přidat špendlík / milník na metr">📍 Přidat milník</button>
+                    <button id="btn-export" class="btn" title="Sdílet aktuální stav">📋 Sdílet</button>
+                </div>
+            </div>
+
+            <!-- Tape Scroll Area -->
+            <div class="tape-scroll-container" id="tape-scroll-area">
+                <div class="measuring-tape" id="measuring-tape">
+                    <!-- Populated dynamically via app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Fast Actions Panel -->
+        <section class="action-card">
+            <div class="action-status">
+                <div class="status-indicator"></div>
+                <div>
+                    <strong style="font-size: 0.95rem;">Rychlé akce stříhání</strong>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Můžete ustřihnout další centimetr nebo synchronizovat podle dnešního data</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btn-cut-next" class="btn btn-primary" style="font-size: 1rem; padding: 0.7rem 1.4rem;">
+                    ✂️ Ustřihnout další centimetr
+                </button>
+                <button id="btn-cut-to-today" class="btn" title="Ustřihnout všechny dny až do dneška">
+                    ⚡ Synchronizovat s dneškem
+                </button>
+                <button id="btn-reset" class="btn btn-danger" title="Obnovit metr na začátek">
+                    🔄 Resetovat metr
+                </button>
+            </div>
+        </section>
+
+        <!-- Features & Memories Grid -->
+        <section class="features-grid">
+            <!-- Diary & Daily Notes -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3>📝 Deník odstřižených dnů</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Vzpomínky a nálady</span>
+                </div>
+                <div class="diary-list" id="diary-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- How it works & Lore info card -->
+            <div class="feature-card">
+                <div class="feature-card-header">
+                    <h3>🎖️ Tradice stříhání metru</h3>
+                    <span class="badge-tag">Zvyk</span>
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">
+                    Stříhání krejčovského metru je tradiční rituál, kterým vojáci na základní vojenské službě nebo studenti před maturitou a státnicemi odpočítávali posledních 150 či 100 dní do civilu či svobody. Každý den se odstřihne přesně jeden centimetr pásky.
+                </p>
+                <div style="background: rgba(255, 255, 255, 0.04); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem; border-left: 3px solid var(--accent-color);">
+                    💡 <strong>Tip:</strong> Nastavte si svůj vlastní metr na dovolenou, konec projektu, narozeniny nebo svatbu a ustřihněte si každý den kousek pro radost!
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Settings -->
+    <div id="settings-modal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>⚙️ Nastavení metru a odpočtu</h3>
+                <button class="btn btn-icon modal-close-btn">&times;</button>
+            </div>
+            <form id="form-settings">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="input-title">Název události / cíle</label>
+                        <input type="text" id="input-title" class="form-control" placeholder="např. Konec zkouškového, Dovolená v Itálii, Svatba" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rychlé předvolby</label>
+                        <div class="preset-chips">
+                            <button type="button" class="chip-btn" data-days="100" data-title="Stovka do cíle 💯">💯 100 dní (Klasika 100 → 1)</button>
+                            <button type="button" class="chip-btn" data-days="150" data-title="Vojenský metr (150 do civilu) 🪖">🪖 150 dní (Vojna)</button>
+                            <button type="button" class="chip-btn" data-days="30" data-title="Měsíc do cíle 🚀">🚀 30 dní</button>
+                            <button type="button" class="chip-btn" data-days="14" data-title="Dovolená se blíží! 🏖️">🏖️ 14 dní</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-total-days">Délka metru v cm (počet dní)</label>
+                        <input type="number" id="input-total-days" class="form-control" min="1" max="1000" value="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="select-numbering-order">Styl číslování pásky</label>
+                        <select id="select-numbering-order" class="form-control">
+                            <option value="desc" selected>💯 Sestupně: od 100 do 1 (Tradiční stříhání metru)</option>
+                            <option value="asc">📈 Vzestupně: od 1 do 100</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-start-date">Počáteční datum</label>
+                        <input type="date" id="input-start-date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-target-date">Cílové datum (Den D)</label>
+                        <input type="date" id="input-target-date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn modal-close-btn">Zrušit</button>
+                    <button type="submit" class="btn btn-primary">Uložit nastavení</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Milestone -->
+    <div id="milestone-modal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>📍 Přidat milník na metr</h3>
+                <button class="btn btn-icon modal-close-btn">&times;</button>
+            </div>
+            <form id="form-milestone">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="input-milestone-day">Na kolikátý centimetr (den)?</label>
+                        <input type="number" id="input-milestone-day" class="form-control" min="1" max="500" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-milestone-label">Název milníku</label>
+                        <input type="text" id="input-milestone-label" class="form-control" placeholder="např. Odevzdání práce, Půlka cesty" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-milestone-icon">Ikona / Emoji</label>
+                        <select id="input-milestone-icon" class="form-control">
+                            <option value="⭐">⭐ Hvězda</option>
+                            <option value="🎉">🎉 Oslava</option>
+                            <option value="🚀">🚀 Raketa</option>
+                            <option value="⚡">⚡ Blesk</option>
+                            <option value="🏖️">🏖️ Pláž</option>
+                            <option value="💍">💍 Prstýnek</option>
+                            <option value="🎓">🎓 Čepice (Maturita / Státnice)</option>
+                            <option value="🏆">🏆 Pohár</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn modal-close-btn">Zrušit</button>
+                    <button type="submit" class="btn btn-primary">Přidat milník</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Diary Note on Cut -->
+    <div id="diary-modal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3>✂️ Ustřižen <span id="current-cut-day-label">1. centimetr</span></h3>
+                <button class="btn btn-icon modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="diary-note-text">Chcete si k tomuto dni uložit krátkou poznámku či vzpomínku? (Nepovinné)</label>
+                    <input type="text" id="diary-note-text" class="form-control" placeholder="např. Dnes byl skvělý den, zbývá už jen kousek...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-close-btn">Přeskočit</button>
+                <button type="button" id="btn-save-diary-note" class="btn btn-primary">Uložit poznámku</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="audio.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
