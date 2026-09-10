@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Interaktivní aplikace pro odpočet do Dne D ve stylu tradičního stříhání metru",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -19,6 +20,8 @@
   "author": "Pavel",
   "license": "MIT",
   "devDependencies": {
-    "vite": "^6.0.0"
+    "@cloudflare/vite-plugin": "^1.54.6",
+    "vite": "^6.0.0",
+    "wrangler": "^4.130.0"
   }
 }
